@@ -1,93 +1,61 @@
-
-
-function Square({ value, onSquareClick }) {
-  return (
-    <button className="square" onClick={onSquareClick}>
-      {value}
-    </button>
-  );
-}
-
-function Board({ xIsNext, squares, onPlay }) {
-  function handleClick(i) {
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
-    const nextSquares = squares.slice();
-    nextSquares[i] = xIsNext ? 'X' : 'O';
-    onPlay(nextSquares);
-  }
-
-  const winner = calculateWinner(squares);
-  const status = winner
-    ? 'Winner: ' + winner
-    : 'Next player: ' + (xIsNext ? 'X' : 'O');
-
-  return (
-    <>
-      <div className="status">{status}</div>
-      <div className="board-row">
-        {squares.slice(0, 3).map((val, i) => (
-          <Square key={i} value={val} onSquareClick={() => handleClick(i)} />
-        ))}
-      </div>
-      <div className="board-row">
-        {squares.slice(3, 6).map((val, i) => (
-          <Square key={i + 3} value={val} onSquareClick={() => handleClick(i + 3)} />
-        ))}
-      </div>
-      <div className="board-row">
-        {squares.slice(6, 9).map((val, i) => (
-          <Square key={i + 6} value={val} onSquareClick={() => handleClick(i + 6)} />
-        ))}
-      </div>
-    </>
-  );
-}
+const { useState } = React;
 
 function App() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
-  const [currentMove, setCurrentMove] = useState(0);
-  const xIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
+  const [squares, setSquares] = useState(Array(9).fill(null));
+  const [isXNext, setIsXNext] = useState(true);
+  const winner = calculateWinner(squares);
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
-  }
+  const handleClick = (index) => {
+    if (squares[index] || winner) return;
 
-  function jumpTo(move) {
-    setCurrentMove(move);
-  }
+    const newSquares = squares.slice();
+    newSquares[index] = isXNext ? 'X' : 'O';
+    setSquares(newSquares);
+    setIsXNext(!isXNext);
+  };
 
-  const moves = history.map((_, move) => {
-    const desc = move ? `Go to move #${move}` : 'Go to game start';
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{desc}</button>
-      </li>
-    );
-  });
+  const restartGame = () => {
+    setSquares(Array(9).fill(null));
+    setIsXNext(true);
+  };
+
+  const renderSquare = (index) => (
+    <button className="square" onClick={() => handleClick(index)}>
+      {squares[index]}
+    </button>
+  );
+
+  const status = winner
+    ? `Winner: ${winner}`
+    : squares.every(Boolean)
+    ? 'Draw!'
+    : `Next Player: ${isXNext ? 'X' : 'O'}`;
 
   return (
     <div className="game">
-      <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+      <h1>Tic-Tac-Toe</h1>
+      <div className="status">{status}</div>
+      <div className="board">
+        <div className="board-row">
+          {renderSquare(0)}{renderSquare(1)}{renderSquare(2)}
+        </div>
+        <div className="board-row">
+          {renderSquare(3)}{renderSquare(4)}{renderSquare(5)}
+        </div>
+        <div className="board-row">
+          {renderSquare(6)}{renderSquare(7)}{renderSquare(8)}
+        </div>
       </div>
-      <div className="game-info">
-        <ol>{moves}</ol>
-      </div>
+      <button className="restart" onClick={restartGame}>Restart Game</button>
     </div>
   );
 }
 
-// Helper function
 function calculateWinner(squares) {
   const lines = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
     [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-    [0, 4, 8], [2, 4, 6],           // diagonals
+    [0, 4, 8], [2, 4, 6]             // diagonals
   ];
   for (let [a, b, c] of lines) {
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
