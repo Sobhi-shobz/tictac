@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import './App.css'; // Optional, for styling
+
 
 function Square({ value, onSquareClick }) {
   return (
